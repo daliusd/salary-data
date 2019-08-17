@@ -24,22 +24,27 @@ async function main() {
     let dataUrl = `http://atvira.sodra.lt/imones/downloads/${year}/monthly-${year}.json.zip`;
     let dataZipFilename = path.join(workDir, `monthly-${year}.json.zip`);
 
-    const wgetResult = await exec(`curl -o ${dataZipFilename} ${dataUrl}`);
-
-    if (wgetResult.stderro) {
-        console.error(`Error downloading data: ${stderr}`);
+    const curlResult = await exec(`curl -o ${dataZipFilename} ${dataUrl}`);
+    if (curlResult.stdout) {
+        console.error(`Error downloading data: ${curlResult.stdout}`);
         return;
     }
 
     const unzipResult = await exec(`unzip ${dataZipFilename} -d ${workDir}`);
-    if (wgetResult.stderro) {
-        console.error(`Error unzipping downloaded data: ${stderr}`);
+    if (unzipResult.stderr) {
+        console.error(`Error unzipping downloaded data: ${unzipResult.stderr}`);
         return;
     }
 
     const simplifyResult = await exec(`node simplify.js ${workDir} ${year} ${month}`);
-    if (simplifyResult.stderro) {
-        console.error(`Error simplifying data: ${stderr}`);
+    if (simplifyResult.stderr) {
+        console.error(`Error simplifying data: ${simplifyResult.stderr}`);
+        return;
+    }
+
+    const indexResult = await exec(`node buildindex.js ${workDir}`);
+    if (indexResult.stderr) {
+        console.error(`Error creating index: ${indexResult.stderr}`);
         return;
     }
 }
