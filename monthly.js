@@ -1,6 +1,7 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const path = require('path');
+const fs = require('fs');
 
 async function main() {
     if (process.argv.length < 3) {
@@ -24,18 +25,37 @@ async function main() {
     let dataUrl = `http://atvira.sodra.lt/imones/downloads/${year}/monthly-${year}.json.zip`;
     let dataZipFilename = path.join(workDir, `monthly-${year}.json.zip`);
 
+    // Get averages
     const curlResult = await exec(`curl -o ${dataZipFilename} ${dataUrl}`);
     if (curlResult.stdout) {
         console.error(`Error downloading data: ${curlResult.stdout}`);
         return;
     }
 
-    const unzipResult = await exec(`unzip ${dataZipFilename} -d ${workDir}`);
+    const unzipResult = await exec(`unzip -o ${dataZipFilename} -d ${workDir}`);
     if (unzipResult.stderr) {
         console.error(`Error unzipping downloaded data: ${unzipResult.stderr}`);
         return;
     }
 
+    // Get detailed data for last month
+    let vidurkiaiDataZipFilename = path.join(workDir, `vidurkiai.zip`);
+    const curlResult2 = await exec(`curl -o ${vidurkiaiDataZipFilename} http://sodra.is.lt/Failai/Vidurkiai.zip`);
+    if (curlResult2.stdout) {
+        console.error(`Error downloading data: ${curlResult2.stdout}`);
+        return;
+    }
+
+    const unzipResult2 = await exec(`unzip -o ${vidurkiaiDataZipFilename} -d ${workDir}`);
+    if (unzipResult2.stderr) {
+        console.error(`Error unzipping downloaded data: ${unzipResult2.stderr}`);
+        return;
+    }
+
+    let vidurkiaiDataCsvFilename = path.join(workDir, `vidurkiai${year}${month}.csv`);
+    fs.renameSync(path.join(workDir, 'VIDURKIAI.CSV'), vidurkiaiDataCsvFilename);
+
+    // Process results
     const simplifyResult = await exec(`node simplify.js ${workDir} ${year} ${month}`);
     if (simplifyResult.stderr) {
         console.error(`Error simplifying data: ${simplifyResult.stderr}`);
