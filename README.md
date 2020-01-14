@@ -15,3 +15,10 @@ E.g. following cron command might work:
 simplify.js - Extract data for specific month and simplify it.
 
 buildindex.js - Build index.json file.
+
+Data sources
+============
+
+* http://atvira.sodra.lt/imones/rinkiniai/index.html
+
+* https://www.sodra.lt/lt/paslaugos/informacijos-rinkmenos
