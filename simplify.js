@@ -16,7 +16,7 @@ let month = process.argv[4];
 let csvFilename = path.join(workDir, `vidurkiai${year}${month}.csv`);
 let csvdata = fs.readFileSync(csvFilename).toString().split('\n');
 
-let dataByJarCode = {};
+let dataByCode = {};
 
 function extractNumber(str) {
     return parseFloat(str.trim().replace(',', '.'));
@@ -25,9 +25,9 @@ function extractNumber(str) {
 for (let line of csvdata) {
     let data = line.split(';')
 
-    if (data.length > 11 && data[0].length > 0) {
-        let jarCode = data[0];
-        dataByJarCode[jarCode] = {
+    if (data.length > 11 && data[1].length > 0) {
+        let code = data[1];
+        dataByCode[code] = {
             'a': extractNumber(data[2]),
             'a3': extractNumber(data[7]) || undefined, // average
             'm3': extractNumber(data[8]) || undefined, // median
@@ -57,10 +57,14 @@ for (let monthData of monthly) {
             i: monthData.numInsured,
         }
 
-        if (monthData.jarCode in dataByJarCode && monthData.avgWage === dataByJarCode[monthData.jarCode].a) {
-            processedData = {
-                ...processedData,
-                ...dataByJarCode[monthData.jarCode],
+        if (monthData.code in dataByCode) {
+            if (monthData.avgWage === dataByCode[monthData.code].a) {
+                processedData = {
+                    ...processedData,
+                    ...dataByCode[monthData.code],
+                }
+            } else {
+                console.log('Problem with data', monthData.name, monthData.avgWage, dataByCode[monthData.code].a);
             }
         }
 
