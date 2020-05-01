@@ -22,11 +22,11 @@ async function main() {
 
     year = year.toString();
 
-    let dataUrl = `http://atvira.sodra.lt/imones/downloads/${year}/monthly-${year}.json.zip`;
+    let dataUrl = `https://atvira.sodra.lt/imones/downloads/${year}/monthly-${year}.json.zip`;
     let dataZipFilename = path.join(workDir, `monthly-${year}.json.zip`);
 
     // Get averages
-    const curlResult = await exec(`curl -o ${dataZipFilename} ${dataUrl}`);
+    const curlResult = await exec(`curl -k -o ${dataZipFilename} ${dataUrl}`);
     if (curlResult.stdout) {
         console.error(`Error downloading data: ${curlResult.stdout}`);
         return;
@@ -40,7 +40,7 @@ async function main() {
 
     // Get detailed data for last month
     let vidurkiaiDataZipFilename = path.join(workDir, `vidurkiai.zip`);
-    const curlResult2 = await exec(`curl -o ${vidurkiaiDataZipFilename} http://sodra.is.lt/Failai/Vidurkiai.zip`);
+    const curlResult2 = await exec(`curl -k -o ${vidurkiaiDataZipFilename} http://sodra.is.lt/Failai/Vidurkiai.zip`);
     if (curlResult2.stdout) {
         console.error(`Error downloading data: ${curlResult2.stdout}`);
         return;
@@ -52,11 +52,12 @@ async function main() {
         return;
     }
 
-    let vidurkiaiDataCsvFilename = path.join(workDir, `vidurkiai${year}${month}.csv`);
+    let monthStr = month.toString().padStart(2, '0');
+    let vidurkiaiDataCsvFilename = path.join(workDir, `vidurkiai${year}${monthStr}.csv`);
     fs.renameSync(path.join(workDir, 'VIDURKIAI.CSV'), vidurkiaiDataCsvFilename);
 
     // Process results
-    const simplifyResult = await exec(`node simplify.js ${workDir} ${year} ${month}`);
+    const simplifyResult = await exec(`node simplify.js ${workDir} ${year} ${monthStr}`);
     if (simplifyResult.stderr) {
         console.error(`Error simplifying data: ${simplifyResult.stderr}`);
         return;
