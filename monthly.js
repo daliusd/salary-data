@@ -2,6 +2,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 async function main() {
     if (process.argv.length < 3) {
@@ -9,6 +10,7 @@ async function main() {
         return;
     }
     let workDir = process.argv[2];
+    let tempDir = fs.mkdtempSync(os.tmpdir());
 
     let current = new Date();
 
@@ -23,7 +25,7 @@ async function main() {
     year = year.toString();
 
     let dataUrl = `https://atvira.sodra.lt/imones/downloads/${year}/monthly-${year}.json.zip`;
-    let dataZipFilename = path.join(workDir, `monthly-${year}.json.zip`);
+    let dataZipFilename = path.join(tempDir, `monthly-${year}.json.zip`);
 
     // Get averages
     const curlResult = await exec(`curl -k -o ${dataZipFilename} ${dataUrl}`);
@@ -32,21 +34,28 @@ async function main() {
         return;
     }
 
-    const unzipResult = await exec(`unzip -o ${dataZipFilename} -d ${workDir}`);
+    const unzipResult = await exec(`unzip -o ${dataZipFilename} -d ${tempDir}`);
     if (unzipResult.stderr) {
         console.error(`Error unzipping downloaded data: ${unzipResult.stderr}`);
         return;
     }
 
+    const monthlyInWorkDir = path.join(workDir, `monthly-${year}.json`);
+    try {
+      fs.unlinkSync(monthlyInWorkDir);
+    } catch (err) {}
+
+    fs.renameSync(path.join(tempDir, `monthly-${year}.json`), monthlyInWorkDir);
+
     // Get detailed data for last month
-    let vidurkiaiDataZipFilename = path.join(workDir, `vidurkiai.zip`);
+    let vidurkiaiDataZipFilename = path.join(tempDir, `vidurkiai.zip`);
     const curlResult2 = await exec(`curl -k -o ${vidurkiaiDataZipFilename} http://sodra.is.lt/Failai/Vidurkiai.zip`);
     if (curlResult2.stdout) {
         console.error(`Error downloading data: ${curlResult2.stdout}`);
         return;
     }
 
-    const unzipResult2 = await exec(`unzip -o ${vidurkiaiDataZipFilename} -d ${workDir}`);
+    const unzipResult2 = await exec(`unzip -o ${vidurkiaiDataZipFilename} -d ${tempDir}`);
     if (unzipResult2.stderr) {
         console.error(`Error unzipping downloaded data: ${unzipResult2.stderr}`);
         return;
@@ -54,7 +63,7 @@ async function main() {
 
     let monthStr = month.toString().padStart(2, '0');
     let vidurkiaiDataCsvFilename = path.join(workDir, `vidurkiai${year}${monthStr}.csv`);
-    fs.renameSync(path.join(workDir, 'VIDURKIAI.CSV'), vidurkiaiDataCsvFilename);
+    fs.renameSync(path.join(tempDir, 'VIDURKIAI.CSV'), vidurkiaiDataCsvFilename);
 
     // Process results
     const simplifyResult = await exec(`node simplify.js ${workDir} ${year} ${monthStr}`);
