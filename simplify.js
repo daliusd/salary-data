@@ -43,29 +43,31 @@ function calcMaxPossibleSalary(data) {
 }
 
 // Read CSV data
-let csvFilename = path.join(workDir, `vidurkiai${year}${month}.csv`);
-let csvdata = fs.readFileSync(csvFilename).toString().split('\n');
-
 let dataByCode = {};
 
-function extractNumber(str) {
-    return parseFloat(str.trim().replace(',', '.'));
-}
+let csvFilename = path.join(workDir, `vidurkiai${year}${month}.csv`);
+if (fs.existsSync(csvFilename)) {
+  let csvdata = fs.readFileSync(csvFilename).toString().split('\n');
 
-for (let line of csvdata) {
-    let data = line.split(';')
+  function extractNumber(str) {
+      return parseFloat(str.trim().replace(',', '.'));
+  }
 
-    if (data.length > 11 && data[1].length > 0) {
-        let code = data[1];
-        dataByCode[code] = {
-            'a': extractNumber(data[2]),
-            'a3': extractNumber(data[7]) || undefined, // average
-            'm3': extractNumber(data[8]) || undefined, // median
-            'f3': extractNumber(data[9]) || undefined, // first 25%
-            'l3': extractNumber(data[10]) || undefined, // last 25%
-            's3': extractNumber(data[11]) || undefined, // std
-        }
-    }
+  for (let line of csvdata) {
+      let data = line.split(';')
+
+      if (data.length > 11 && data[1].length > 0) {
+          let code = data[1];
+          dataByCode[code] = {
+              'a': extractNumber(data[2]),
+              'a3': extractNumber(data[7]) || undefined, // average
+              'm3': extractNumber(data[8]) || undefined, // median
+              'f3': extractNumber(data[9]) || undefined, // first 25%
+              'l3': extractNumber(data[10]) || undefined, // last 25%
+              's3': extractNumber(data[11]) || undefined, // std
+          }
+      }
+  }
 }
 
 // Read JSON data
