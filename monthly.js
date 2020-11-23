@@ -10,7 +10,7 @@ async function main() {
         return;
     }
     let workDir = process.argv[2];
-    let tempDir = fs.mkdtempSync(os.tmpdir());
+    let tempDir = fs.mkdtempSync(os.tmpdir() + '/');
 
     let current = new Date();
 
