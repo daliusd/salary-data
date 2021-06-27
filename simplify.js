@@ -46,6 +46,9 @@ function calcMaxPossibleSalary(data) {
 let dataByCode = {};
 
 let csvFilename = path.join(workDir, `vidurkiai${year}${month}.csv`);
+let intYear = parseInt(year, 10);
+let intMonth = parseInt(month, 10);
+
 if (fs.existsSync(csvFilename)) {
   let csvdata = fs.readFileSync(csvFilename).toString().split('\n');
 
@@ -58,7 +61,7 @@ if (fs.existsSync(csvFilename)) {
 
     if (data.length > 11 && data[1].length > 0) {
       let code = data[1];
-      if (year > 2021 || (year == 2021 && month >= 4)) {
+      if (intYear > 2021 || (intYear == 2021 && intMonth >= 4)) {
         dataByCode[code] = {
           'a': extractNumber(data[2]),
           'a3': extractNumber(data[9]) || undefined, // average
@@ -87,7 +90,7 @@ let jsonFilename = path.join(workDir, `monthly-${year}.json`);
 let rawdata = fs.readFileSync(jsonFilename);
 let monthly = JSON.parse(rawdata);
 
-let monthInt = parseInt(year, 10) * 100 + parseInt(month, 10);
+let monthInt = intYear * 100 + intMonth;
 
 let processed = [];
 for (let monthData of monthly) {
