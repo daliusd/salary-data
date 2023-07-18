@@ -13,7 +13,7 @@ async function main() {
     let tempDir = fs.mkdtempSync(os.tmpdir() + '/');
 
     let current = new Date();
-    current.setMonth(current.getMonth() - 1);
+    current.setMonth(current.getMonth() - 2);
 
     const year = current.getFullYear();
     month = current.getMonth();
