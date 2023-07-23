@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const nReadlines = require('n-readlines');
+const CSV = require('csv-string');
 
 if (process.argv.length < 5) {
   console.log('node simplify.js working_directory year month');
@@ -14,30 +16,29 @@ let month = process.argv[4];
 let intYear = parseInt(year, 10);
 let intMonth = parseInt(month, 10);
 
-// Read JSON data
-let jsonFilename = path.join(workDir, `monthly-${year}.json`);
+// Read data
+let csvFilename = path.join(workDir, `monthly-${year}.csv`);
 
-let rawdata = fs.readFileSync(jsonFilename);
-let monthly = JSON.parse(rawdata);
+const data = new nReadlines(csvFilename);
 
-let monthInt = intYear * 100 + intMonth;
+let monthInt = (intYear * 100 + intMonth).toString();
 
-let processed = [];
-for (let monthData of monthly) {
-  if (monthData.avgWage && monthData.month === monthInt) {
-    let processedData = {
-      n: monthData.name,
-      w: monthData.avgWage,
-      e: monthData.ecoActName || undefined,
-      m: monthData.municipality,
-      i: monthData.numInsured,
+
+let result = [];
+while (line = data.next()) {
+  info = CSV.parse(line.toString())[0];
+
+  if (info[7] && info[6] === monthInt) {
+    let row = {
+      n: info[2],
+      w: parseFloat(info[7]),
+      e: info[5] || undefined,
+      m: info[3],
+      i: parseInt(info[8], 10),
     }
-
-    processed.push(processedData);
+    result.push(row)
   }
+
 }
 
-fs.mkdirSync('data', { recursive: true });
-
-let data = JSON.stringify(processed, null, 2);
-fs.writeFileSync(path.join(workDir, `${monthInt}.json`), data);
+fs.writeFileSync(path.join(workDir, `${monthInt}.json`),JSON.stringify(result, null, 2));

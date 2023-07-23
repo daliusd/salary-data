@@ -27,8 +27,8 @@ async function main() {
     month = current.getMonth();
   }
 
-  let dataUrl = `https://atvira.sodra.lt/imones/downloads/${year}/monthly-${year}.json.zip`;
-  let dataZipFilename = path.join(tempDir, `monthly-${year}.json.zip`);
+  let dataUrl = `https://atvira.sodra.lt/imones/downloads/${year}/monthly-${year}.csv.zip`;
+  let dataZipFilename = path.join(tempDir, `monthly-${year}.csv.zip`);
 
   // Get averages
   const curlResult = await exec(`curl -k -o ${dataZipFilename} ${dataUrl}`);
@@ -43,12 +43,12 @@ async function main() {
     return;
   }
 
-  const monthlyInWorkDir = path.join(workDir, `monthly-${year}.json`);
+  const monthlyInWorkDir = path.join(workDir, `monthly-${year}.csv`);
   try {
     fs.unlinkSync(monthlyInWorkDir);
   } catch (err) {}
 
-  fs.renameSync(path.join(tempDir, `monthly-${year}.json`), monthlyInWorkDir);
+  fs.renameSync(path.join(tempDir, `monthly-${year}.csv`), monthlyInWorkDir);
 
   // Process results
   const simplifyResult = await exec(
